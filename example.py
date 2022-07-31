@@ -1,9 +1,13 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import os
 import sys
 import ctypes
 import ProjectedFS
+
+if hasattr(__builtins__, 'raw_input'):
+    input=raw_input
 
 # HRESULT
 S_OK                    = 0x00000000
@@ -83,15 +87,15 @@ instanceId.Data2 = 0xBAAD
 instanceId.Data3 = 0xCAA7
 
 if not os.path.exists(virt_root):
-    print "%s does not exist yet, creating.." % (virt_root)
+    print("%s does not exist yet, creating.." % (virt_root))
     os.mkdir(virt_root)
 
 if not os.path.isdir(virt_root):
-    print "%s is not a directory, exiting.." % (virt_root)
+    print("%s is not a directory, exiting.." % (virt_root))
     sys.exit(1)
 
 if ProjectedFS.PrjMarkDirectoryAsPlaceholder(virt_root, None, None, instanceId) != S_OK:
-    print "Error marking %s directory as placeholder. Exiting.." % (virt_root)
+    print("Error marking %s directory as placeholder. Exiting.." % (virt_root))
     sys.exit(1)
 
 # Populate the *required* provider callback routines
@@ -103,20 +107,20 @@ callbackTable.GetDirectoryEnumerationCallback = getdir_enum_cb
 callbackTable.GetPlaceholderInfoCallback = getplaceholder_info_cb
 callbackTable.GetFileDataCallback = getfiledata_cb
 
-print "Starting virtualization instance"
+print("Starting virtualization instance")
 
 # Start Provider
 instanceHandle = ProjectedFS.PRJ_NAMESPACE_VIRTUALIZATION_CONTEXT()
 if ProjectedFS.PrjStartVirtualizing(virt_root, callbackTable, None, None, instanceHandle) != S_OK:
-    print "Error starting virtualization. Exiting.."
+    print("Error starting virtualization. Exiting..")
     sys.exit(1)
 
 # virt file exists from previous run? delete it
 if os.path.isfile(virt_root + os.path.sep + virt_file):
     ProjectedFS.PrjDeleteFile(instanceHandle, virt_file, ProjectedFS.PRJ_UPDATE_ALLOW_DIRTY_METADATA | ProjectedFS.PRJ_UPDATE_ALLOW_DIRTY_DATA | ProjectedFS.PRJ_UPDATE_ALLOW_TOMBSTONE)
 
-raw_input("Press any key to exit...")
+input("Press any key to exit...")
 
 # Stop Provider. MSDN says it returns an HRESULT, but the func prototype is void.
 ProjectedFS.PrjStopVirtualizing(instanceHandle)
-print "Stopped virtualization instance"
+print("Stopped virtualization instance")
